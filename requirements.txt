@@ -1,0 +1,7 @@
+Flask
+Flask-SQLAlchemy
+Flask-Cors
+requests
+python-dotenv
+psycopg2
+apscheduler
