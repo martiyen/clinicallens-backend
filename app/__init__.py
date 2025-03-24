@@ -13,8 +13,8 @@ def create_app():
 
     CORS(app)
 
-    from app.routes import main
-    app.register_blueprint(main)
+    from app.routes import trials
+    app.register_blueprint(trials)
 
     from app.scheduler import start_scheduler
     start_scheduler(app)

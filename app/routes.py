@@ -1,33 +1,31 @@
 from flask import Blueprint, jsonify
 from app import db
 from app.models import ClinicalTrial
-from sqlalchemy.sql import func
-from app.fetch_trials import fetch_and_store_trials
+from sqlalchemy.sql import func, select
+from collections import Counter
 
-main = Blueprint("main", __name__)
+trials = Blueprint("trials", __name__)
 
-@main.route("/trials", methods=["GET"])
+@trials.route("/trials", methods=["GET"])
 def get_trials():
     trials = ClinicalTrial.query.all()
     return jsonify([trial.to_dict() for trial in trials])
 
-@main.route("/trials/count", methods=["GET"])
+@trials.route("/trials/count", methods=["GET"])
 def get_trial_count():
     count = db.session.query(func.count(ClinicalTrial.id)).scalar()
     return jsonify({"total_trials": count})
 
-@main.route("/trials/latest", methods=["GET"])
+@trials.route("/trials/latest", methods=["GET"])
 def get_latest_trials():
     trials = ClinicalTrial.query.order_by(ClinicalTrial.first_submit_date.desc()).limit(10).all()
     return jsonify([trial.to_dict() for trial in trials])
 
-@main.route("/trials/update", methods = ["POST"])
-def update_trials():
-    fetch_and_store_trials()
-    return "Trials updated"
-
-@main.route("/trials/delete/all", methods = ["DELETE"])
-def delete_all():
-    db.drop_all()
-    db.create_all()
-    return "Trials deleted"
+@trials.route("/trials/best-sponsors", methods=['GET'])
+def get_best_sponsor():
+    sponsors = db.session.execute(select(ClinicalTrial.sponsor_name)).all()
+    sponsor_list = [sponsor[0] for sponsor in sponsors]
+    sponsor_counts = Counter(sponsor_list)
+    most_common = sponsor_counts.most_common(3)
+    most_common_json = [{"sponsorName":name, "count": count} for name, count in most_common]
+    return most_common_json
