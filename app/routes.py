@@ -16,7 +16,7 @@ def get_trial_count():
     count = db.session.query(func.count(ClinicalTrial.id)).scalar()
     return jsonify({"total_trials": count})
 
-@trials.route("/trials/latest", methods=["GET"])
+@trials.route("/trials/latests", methods=["GET"])
 def get_latest_trials():
     trials = ClinicalTrial.query.order_by(ClinicalTrial.first_submit_date.desc()).limit(10).all()
     return jsonify([trial.to_dict() for trial in trials])
@@ -29,3 +29,13 @@ def get_best_sponsor():
     most_common = sponsor_counts.most_common(3)
     most_common_json = [{"sponsorName":name, "count": count} for name, count in most_common]
     return most_common_json
+
+@trials.route("/trials/<query>", methods=['GET'])
+def get_by_keyword(query):
+    trials = ClinicalTrial.query.filter(func.lower(ClinicalTrial.summary).contains(func.lower(query))).all()
+    return jsonify([trial.to_dict() for trial in trials])
+
+@trials.route("/trials/random", methods=['GET'])
+def get_random_trial():
+    trials = [ClinicalTrial.query.order_by(func.random()).first()]
+    return jsonify([trial.to_dict() for trial in trials])
