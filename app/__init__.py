@@ -1,11 +1,11 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
 db = SQLAlchemy()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../static/dist', static_url_path='')
     
     app.config.from_object('app.config.Config')
 
@@ -21,5 +21,12 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+    
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_frontend(path):
+        print('Looking for index.html')
+        print('App static folder is' + app.static_folder)
+        return send_from_directory(app.static_folder, "index.html")
 
     return app
